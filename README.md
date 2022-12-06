@@ -165,11 +165,17 @@ Once the pod is restarted, you will see again the error saying that vault alread
         - -ec
 ```
 
-Recreate the pod, and run a vault status againt it. Vault is going to be initialized already and you will have to unseal it using your old unsealing keys:
+Recreate the pod, and run a vault status against it. Vault is going to be initialized already and you will have to unseal it using your old unsealing keys:
 
 `vault operator unseal -migrate`
 
-That's all you need to perform seal and storage migration using vault with helm and Kubernetes.
+Enter all the remaining unseal keys; these keys must also be entered with the -migrate flag ensuring everyone involved in the migration is aware. Observe that the Vault server is functional with e.g. vault status and by login / secret retrieval, etc, now you might want to increase the replicas to 3 and start and unseal remaining pods in the same way.
+
+### Validating
+- `vault status`
+- `vault operator raft list-peers`
+- `vault secrets list || vault policy list`
+
 
 Last by not least, once the migration is finished and everything is up and running, make sure you enable and configure TLS.
 
