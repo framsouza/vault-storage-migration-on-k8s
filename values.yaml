@@ -1,0 +1,70 @@
+global:
+  enabled: true
+  tlsDisable: true
+
+injector:
+  enabled: false
+
+server:
+  logLevel: debug
+
+  extraEnvironmentVars:
+    GOOGLE_REGION: <REGION>
+    GOOGLE_PROJECT: <PROJECT>
+    GOOGLE_APPLICATION_CREDENTIALS: <CREDENTIALS>
+
+  volumes:
+    - name: userconfig-kms-creds
+      secret:
+        defaultMode: 420
+        secretName: gcs-creds
+
+  volumeMounts:
+    - mountPath: /vault/userconfig/kms-creds
+      name: userconfig-kms-creds
+      readOnly: true
+
+  standalone:
+    enabled: false
+
+  ha:
+    enabled: true
+    replicas: 3
+
+    raft:
+      enabled: true
+
+      config: |
+        ui = true
+        listener "tcp" {
+          tls_disable = true
+          address = "0.0.0.0:8200"
+          cluster_address = "0.0.0.0:8201"
+        }
+
+        seal "gcpckms" {
+          credentials = "/vault/userconfig/kms-creds/credentials.json"
+          project     = "<GCP-PROJECT>"
+          region      = "<REGION>"
+          key_ring    = "<KEY-RING>"
+          crypto_key  = "<CRIPTO-KEY>"
+        }        
+
+        storage "raft" {
+          path = "/vault/data"        
+          retry_join {
+            leader_api_addr = "http://vault-0.vault-internal:8200"
+          }  
+          retry_join {
+            leader_api_addr = "http://vault-1.vault-internal:8200"
+          }      
+          retry_join {
+            leader_api_addr = "http://vault-2.vault-internal:8200"
+          }            
+        }
+
+        service_registration "kubernetes" {}
+        
+  dataStorage:
+    enabled: true
+    size: 100Gi
