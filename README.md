@@ -1,4 +1,4 @@
-# Migrating vault storage backend on Kubernetes with Helm
+# Migrating vault storage backend and seal method on Kubernetes with Helm
 
 Are you struggling to migrate your vault storage backend or even performing a seal migration when running vault on top of Kubernetes? If so, this page is for you.
 
